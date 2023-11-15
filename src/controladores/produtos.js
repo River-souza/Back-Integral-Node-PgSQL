@@ -1,4 +1,5 @@
-const conexao = require('../conexao');
+
+const conexao = require('../../storage/connection');
 
 const listarProdutos = async (req, res) => {
     const { usuario } = req;

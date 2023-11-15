@@ -1,7 +1,8 @@
-const conexao = require('../conexao');
 const bcrypt = require('bcrypt');
+const conexao = require('../../storage/connection');
 
 const cadastrarUsuario = async (req, res) => {
+
     const { nome, email, senha, nome_loja } = req.body;
 
     if (!nome) {

@@ -4,19 +4,19 @@ const login = require('./controladores/login');
 const produtos = require('./controladores/produtos');
 const verificaLogin = require('./filtros/verificaLogin');
 
-const rotas = express();
+const rotas = express.Router();
 
 // cadastro de usuario
-rotas.post('/usuarios', usuarios.cadastrarUsuario);
+rotas.post('/usuarios', usuarios.cadastrarUsuario);//teste feito!
 
 // login
-rotas.post('/login', login.login);
+rotas.post('/login', login.login);//teste feito!
 
 // filtro para verificar usuario logado
-rotas.use(verificaLogin);
+rotas.use(verificaLogin);//teste feito!
 
 // obter e atualizar perfil do usuario logado
-rotas.get('/perfil', usuarios.obterPerfil);
+rotas.get('/perfil', usuarios.obterPerfil);//teste feito!
 rotas.put('/perfil', usuarios.atualizarPerfil);
 
 // crud de produtos

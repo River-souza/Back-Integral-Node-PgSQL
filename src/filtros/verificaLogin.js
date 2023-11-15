@@ -1,6 +1,5 @@
-const conexao = require('../conexao');
 const jwt = require('jsonwebtoken');
-const senhaHash = require('../senhaHash');
+const knex = require('../../storage/connection-knex');
 
 const verificaLogin = async (req, res, next) => {
     const { authorization } = req.headers;
@@ -12,12 +11,13 @@ const verificaLogin = async (req, res, next) => {
     try {
         const token = authorization.replace('Bearer ', '').trim();
 
-        const { id } = jwt.verify(token, senhaHash);
+        const { id } = jwt.verify(token, process.env.JWT_PASSWORD);
 
-        const query = 'select * from usuarios where id = $1';
-        const { rows, rowCount } = await conexao.query(query, [id]);
+        //const query = 'select * from usuarios where id = $1';
+        //const { rows, rowCount } = await conexao.query(query, [id]);
+        const rows = await knex('usuarios').where('id', id).debug();
 
-        if (rowCount === 0) {
+        if (!rows) {
             return res.status(404).json('Usuario não encontrado');
         }
 
