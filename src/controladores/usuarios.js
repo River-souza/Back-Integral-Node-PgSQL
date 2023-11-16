@@ -1,45 +1,58 @@
 const bcrypt = require('bcrypt');
 const conexao = require('../../storage/connection');
+const knex = require('../../storage/connection-knex');
 
 const cadastrarUsuario = async (req, res) => {
 
     const { nome, email, senha, nome_loja } = req.body;
 
-    if (!nome) {
-        return res.status(404).json("O campo nome é obrigatório");
-    }
+    if (!nome || !email || !senha || !nome_loja) {
 
-    if (!email) {
-        return res.status(404).json("O campo email é obrigatório");
-    }
+        return res.status(404).json("Todos os campos são obrigatórios!");
 
-    if (!senha) {
-        return res.status(404).json("O campo senha é obrigatório");
-    }
-
-    if (!nome_loja) {
-        return res.status(404).json("O campo nome_loja é obrigatório");
     }
 
     try {
-        const { rowCount: quantidadeUsuarios } = await conexao.query('select * from usuarios where email = $1', [email]);
+        //const { rowCount: quantidadeUsuarios } = await conexao.query('select * from usuarios where email = $1', [email]);
+        const rows = await knex('usuarios').where('email', email).debug();
 
-        if (quantidadeUsuarios > 0) {
+        if (rows.length > 0) {
+
             return res.status(400).json("O email já existe");
+
         }
+
+        //if (quantidadeUsuarios > 0) {
+          //  return res.status(400).json("O email já existe");
+        //}
 
         const senhaCriptografada = await bcrypt.hash(senha, 10);
 
-        const query = 'insert into usuarios (nome, email, senha, nome_loja) values ($1, $2, $3, $4)';
-        const usuario = await conexao.query(query, [nome, email, senhaCriptografada, nome_loja]);
+        const user = {
+            nome,
+            email,
+            senha: senhaCriptografada, 
+            nome_loja
+        }
+        
+        //const query = 'insert into usuarios (nome, email, senha, nome_loja) values ($1, $2, $3, $4)';
+        //const usuario = await conexao.query(query, [nome, email, senhaCriptografada, nome_loja]);
+        //const userAdd = await knex('usuarios').insert(user).returning('id');//ou returning(['id', 'nome'])
+        const userAdd = await knex('usuarios').insert(user).returning('*');
 
-        if (usuario.rowCount === 0) {
+        //if (usuario.rowCount === 0) {
+        if(!userAdd) {
+
             return res.status(400).json("O usuário não foi cadastrado.");
+            
         }
 
         return res.status(200).json("O usuario foi cadastrado com sucesso!");
+
     } catch (error) {
+
         return res.status(400).json(error.message);
+
     }
 }
 
@@ -48,6 +61,7 @@ const obterPerfil = async (req, res) => {
 }
 
 const atualizarPerfil = async (req, res) => {
+
     const { nome, email, senha, nome_loja } = req.body;
 
     if (!nome && !email && !senha && !nome_loja) {
@@ -97,6 +111,9 @@ const atualizarPerfil = async (req, res) => {
         const query = `update usuarios set ${params.join(', ')} where id = $${n}`;
         const usuarioAtualizado = await conexao.query(query, valores);
 
+        //const user = await('usuarios').update({ nome, email, telefone }).where('id',id);//se atualizou retorna 1, senão 0
+        //const user = await('usuarios').update({ nome, email, telefone }).where('id',id).returning('*');
+
         if (usuarioAtualizado.rowCount === 0) {
             return res.status(400).json("O usuario não foi atualizado");
         }
@@ -107,8 +124,33 @@ const atualizarPerfil = async (req, res) => {
     }
 }
 
+async function excluirPerfil(req, res) {//exclui o usuário logado
+
+    console.log(req.usuario.id);
+
+    try {
+
+        const isDeleted = await knex('usuarios').del().where('id', req.usuario.id);
+
+        if(!isDeleted) {
+
+            return res.json('O usuário não foi excluído!');
+
+        }
+
+        return res.statusCode(200).json([]);
+
+    } catch(error) {
+
+        return res.json(error.message);
+
+    }
+
+}
+
 module.exports = {
     cadastrarUsuario,
     obterPerfil,
-    atualizarPerfil
+    atualizarPerfil,
+    excluirPerfil
 }

@@ -18,6 +18,7 @@ rotas.use(verificaLogin);//teste feito!
 // obter e atualizar perfil do usuario logado
 rotas.get('/perfil', usuarios.obterPerfil);//teste feito!
 rotas.put('/perfil', usuarios.atualizarPerfil);
+rotas.delete('/perfil', usuarios.excluirPerfil);
 
 // crud de produtos
 rotas.get('/produtos', produtos.listarProdutos);
